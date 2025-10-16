@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  tfidf_svc:
+    build:
+      context: .
+      dockerfile: docker/tfidf_svc.Dockerfile
+    container_name: tfidf_svc
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src/tfidf_svc/:/app/src/tfidf_svc/
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  # Exemple pour le service Transformer (à compléter quand prêt)
+  # transformer:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/transformer.Dockerfile
+  #   container_name: transformer
+  #   ports:
+  #     - "8001:8001"
+  #   volumes:
+  #     - ./src/transformer/:/app/src/transformer/
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+
+    # mlflow:
+    #   image: ghcr.io/mlflow/mlflow:latest
+    #   container_name: mlflow
+    #   ports:
+    #     - "5000:5000"
+    #   environment:
+    #     - MLFLOW_TRACKING_URI=http://mlflow:5000
+    #   volumes:
+    #     - ./mlruns:/mlflow/mlruns
+
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./monitoring/grafana:/var/lib/grafana

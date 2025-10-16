@@ -1,0 +1,10 @@
+artifact_location: file:///home/nasreddine/Desktop/callcenterai/mlruns/916491562428015804/models/m-231e2e318c60404e9644e4711b667878/artifacts
+creation_timestamp: 1760541306429
+experiment_id: '916491562428015804'
+last_updated_timestamp: 1760541309497
+model_id: m-231e2e318c60404e9644e4711b667878
+model_type: null
+name: tfidf_svc_model
+source_run_id: 9d4e4363702a47d68946258b092b4244
+status: 2
+status_message: null
