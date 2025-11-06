@@ -4,3 +4,10 @@ joblib
 scikit-learn
 pandas
 prometheus-fastapi-instrumentator
+transformers
+datasets
+torch
+scikit-learn
+pandas
+mlflow
+joblib
