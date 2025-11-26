@@ -1,28 +1,30 @@
-version: "3.8"
+version: "3.9"
 
 services:
-  tfidf_svc:
+  fastapi:
     build:
       context: .
-      dockerfile: docker/tfidf_svc.Dockerfile
-    container_name: tfidf_svc
+      dockerfile: ./docker/tfidf_svc.Dockerfile
+    container_name: fastapi_service
     ports:
       - "8000:8000"
     volumes:
-      - ./src/tfidf_svc/:/app/src/tfidf_svc/
+      - ./mlruns:/app/mlruns
     environment:
-      - PYTHONUNBUFFERED=1
+      - MLFLOW_TRACKING_URI=sqlite:///mlruns/mlflow.db
 
-  transformer:
-    build:
+  mlflow_ui:
+    build: 
       context: .
-      dockerfile: docker/transformer.Dockerfile
-    container_name: transformer_svc
+      dockerfile: ./docker/tfidf_svc.Dockerfile
+    container_name: mlflow_ui
     ports:
-      - "8001:8000"   # expose le service Transformer sur le port local 8001
+      - "5000:5000"
     volumes:
-      - ./src/transformer/:/app/src/transformer/
-      - ./models/transformer:/app/model:ro   # MONTE ICI ton modèle entrainé (read-only)
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MODEL_DIR=/app/model
+      - ./mlruns:/app/mlruns
+    command: >
+      mlflow ui
+      --backend-store-uri sqlite:///mlruns/mlflow.db
+      --default-artifact-root ./mlruns
+      --host 0.0.0.0
+      --port 5000

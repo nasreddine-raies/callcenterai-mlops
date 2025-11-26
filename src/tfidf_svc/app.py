@@ -1,31 +1,76 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
-import joblib
-from prometheus_fastapi_instrumentator import Instrumentator
+import mlflow
+import mlflow.sklearn
+import os
+from typing import Optional
 
-# Charge le modèle et le vectorizer
-vectorizer = joblib.load("src/tfidf_svc/tfidf_vectorizer.joblib")
-clf = joblib.load("src/tfidf_svc/tfidf_svc_model.joblib")
+app = FastAPI()
 
-app = FastAPI(title="TFIDF SVC API")
+# MLflow tracking URI (uses mounted volume in Docker)
+mlflow.set_tracking_uri("sqlite:///mlruns/mlflow.db")
 
-# Instrumentation Prometheus
-Instrumentator().instrument(app).expose(app)
+# Lazy-loaded model
+model = None
+model_uri: Optional[str] = None
 
-class TicketRequest(BaseModel):
+class PredictRequest(BaseModel):
     text: str
 
-class PredictionResponse(BaseModel):
-    label: str
-    confidence: float
+def find_latest_model_from_registry() -> str:
+    """
+    Finds the latest registered model stored in mlruns/1/models/
+    """
+    registry_path = "mlruns/1/models"
 
-@app.post("/predict", response_model=PredictionResponse)
-def predict_ticket(req: TicketRequest):
-    X = vectorizer.transform([req.text])
-    label = clf.predict(X)[0]
-    confidence = clf.predict_proba(X)[0].max()
-    return PredictionResponse(label=label, confidence=confidence)
+    if not os.path.exists(registry_path):
+        raise FileNotFoundError("No registered MLflow models found in mlruns/1/models")
+
+    versions = [
+        v for v in os.listdir(registry_path)
+        if os.path.isdir(os.path.join(registry_path, v)) and v.startswith("m-")
+    ]
+
+    if not versions:
+        raise FileNotFoundError("No MLflow model versions found in registry.")
+
+    # Sort by modification time (latest version first)
+    versions = sorted(
+        versions,
+        key=lambda v: os.path.getmtime(os.path.join(registry_path, v)),
+        reverse=True
+    )
+
+    latest_version = versions[0]
+
+    model_path = f"mlruns/1/models/{latest_version}/artifacts"
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model artifacts not found at: {model_path}")
+
+    return model_path
+
+
+def load_model():
+    global model, model_uri
+
+    if model is None:
+        print("🔍 Searching for latest registered MLflow model...")
+        model_uri = find_latest_model_from_registry()
+        print(f"📦 Loading model from: {model_uri}")
+        model = mlflow.sklearn.load_model(model_uri)
+        print("✅ Model loaded successfully!")
+
+    return model
+
+
+@app.post("/predict")
+def predict(request: PredictRequest):
+    pipeline = load_model()
+    prediction = pipeline.predict([request.text])[0]
+    return {"prediction": prediction}
+
 
 @app.get("/")
-def read_root():
-    return {"message": "TFIDF SVC API is running"}
+def root():
+    return {"status": "API running", "model_uri": model_uri}

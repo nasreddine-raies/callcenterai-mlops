@@ -1,22 +1,20 @@
-# Utilise une image Python officielle
+# Base image
 FROM python:3.11-slim
 
-# Crée le répertoire de travail
 WORKDIR /app
 
-# Copie le requirements.txt
-COPY requirements.txt .
+# Copy and install dependencies
+COPY ./requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Installe les dépendances
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Copy only the FastAPI app
+COPY src/tfidf_svc/app.py ./app.py
 
-# Copie le code source et les artefacts du modèle
-COPY src/tfidf_svc/ src/tfidf_svc/
-COPY src/tfidf_svc/tfidf_vectorizer.joblib src/tfidf_svc/tfidf_vectorizer.joblib
-COPY src/tfidf_svc/tfidf_svc_model.joblib src/tfidf_svc/tfidf_svc_model.joblib
+# Copy MLflow data
+COPY mlruns/ ./mlruns
 
-# Expose le port de l'API
-EXPOSE 8000
+# Expose ports
+EXPOSE 8000 5000
 
-# Commande pour démarrer le serveur FastAPI
-CMD ["uvicorn", "src.tfidf_svc.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command (can be overridden in docker-compose)
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
