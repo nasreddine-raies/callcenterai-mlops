@@ -1,25 +1,41 @@
-# ==============================
-# Stage 1: Base image
-# ==============================
+# ================================
+# Dockerfile complet Transformer Service
+# ================================
+
 FROM python:3.10-slim
 
-# Set working directory
+# Définir le répertoire de travail
 WORKDIR /app
 
-# Copy requirements and install
-COPY requirements.txt .
+# Mettre à jour pip et configurer le timeout
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip config set global.timeout 200
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Installer dépendances système nécessaires pour torch + transformers
+RUN apt-get update && apt-get install -y \
+    libopenblas-dev \
+    libomp-dev \
+    git \
+    && apt-get clean
 
-# Copy app code
-COPY . .
+# Installer Python packages essentiels
+RUN pip install --no-cache-dir transformers torch fastapi uvicorn --timeout 200
 
-# Expose FastAPI default port
+# Créer un dossier pour le cache Hugging Face
+RUN mkdir -p /app/cache
+ENV HF_HOME=/app/cache
+
+# Pré-télécharger le modèle Hugging Face au build
+RUN python -c "from transformers import AutoModelForSequenceClassification, AutoTokenizer; \
+model_id='nsayer/mon_modele'; \
+AutoModelForSequenceClassification.from_pretrained(model_id); \
+AutoTokenizer.from_pretrained(model_id)"
+
+# Copier le code de l'application
+COPY src/transformer/ /app/
+
+# Exposer le port utilisé par FastAPI/Uvicorn
 EXPOSE 8000
 
-# Set environment variables (optional)
-ENV MODEL_ID=nsayer/mon_modele
-ENV TRANSFORMERS_CACHE=/app/cache
-
-# Run the API with Uvicorn
+# Lancer Uvicorn au démarrage du conteneur
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

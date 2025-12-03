@@ -1,11 +1,12 @@
 version: "3.9"
 
 services:
-  fastapi:
+
+  tfidf_service:
     build:
       context: .
       dockerfile: ./docker/tfidf_svc.Dockerfile
-    container_name: fastapi_service
+    container_name: tfidf_service
     ports:
       - "8000:8000"
     volumes:
@@ -28,3 +29,23 @@ services:
       --default-artifact-root ./mlruns
       --host 0.0.0.0
       --port 5000
+
+  transformer_service:
+    build: 
+      context: .
+      dockerfile: ./docker/transformer.Dockerfile
+    container_name: transformer_service
+    ports:
+      - "8002:8000"  # Host:Container - map host 8001 to container 8000
+    # Remove the command override, let Dockerfile CMD run
+
+  router_service:
+    build:
+      context: .
+      dockerfile: ./docker/router.Dockerfile
+    container_name: router_service
+    ports:
+      - "9000:8000"
+    depends_on:
+      - tfidf_service
+      - transformer_service

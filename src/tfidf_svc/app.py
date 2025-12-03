@@ -67,8 +67,21 @@ def load_model():
 @app.post("/predict")
 def predict(request: PredictRequest):
     pipeline = load_model()
+
+    # Normal prediction
     prediction = pipeline.predict([request.text])[0]
-    return {"prediction": prediction}
+
+    # Try to compute probability
+    try:
+        proba = pipeline.predict_proba([request.text])[0]
+        confidence = float(max(proba))  # best confidence
+    except:
+        confidence = None  # model doesn't support probas
+
+    return {
+        "label": prediction,
+        "confidence": confidence
+    }
 
 
 @app.get("/")

@@ -1,0 +1,23 @@
+Le router envoie d’abord le texte au TF-IDF model (rapide)
+
+Si le TF-IDF a une confidence faible, alors le router essaie le Transformer
+
+Il compare :
+
+la confidence TF-IDF
+
+la confidence Transformer
+
+Il choisit le meilleur
+
+👉 C’est exactement ce que font les "Hybrid AI routers" modernes.
+
+🧩 Pipeline recommandé
+🔹 1. Route → TF-IDF
+🔹 2. Si confidence < 0.75 → fallback Transformer
+🔹 3. Compare
+🔹 4. Retourne le résultat optimal
+
+//next 
+rebuild the transformer image 
+docker compose build transfomer_service

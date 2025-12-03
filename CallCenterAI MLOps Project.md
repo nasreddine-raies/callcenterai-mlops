@@ -723,7 +723,7 @@ docker inspect transformer | grep Mounts -A 20
 
 **Problem**: Container crashes with OOM
 
-**Solution**:
+**Solution**:git init
 ```yaml
 # Edit docker-compose.yml
 services:
