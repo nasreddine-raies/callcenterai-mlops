@@ -49,3 +49,17 @@ services:
     depends_on:
       - tfidf_service
       - transformer_service
+  frontend_ui:
+    build:
+      context: .
+      dockerfile: ./docker/frontend.Dockerfile
+    container_name: frontend_ui
+    ports:
+      - "8501:8501"  # Tu accéderas à l'UI via localhost:8501
+    environment:
+      # Important : le frontend parle au router via le nom du service Docker (port interne 8000)
+      - ROUTER_URL=http://router_service:8000/predict
+    depends_on:
+      - router_service
+    volumes:
+      - ./frontend/app.py:/app/app.py

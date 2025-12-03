@@ -21,3 +21,7 @@ Il choisit le meilleur
 //next 
 rebuild the transformer image 
 docker compose build transfomer_service
+
+
+lien chatbot:
+http://localhost:8501
