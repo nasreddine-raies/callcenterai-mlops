@@ -3,18 +3,21 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy and install dependencies
+# Install system build dependencies for numeric packages
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential gcc gfortran libatlas3-base libopenblas-dev liblapack-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy and install dependencies with longer timeout
 COPY src/tfidf_svc/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip setuptools wheel \
+ && pip --default-timeout=1000 install --no-cache-dir -r requirements.txt
 
-# Copy only the FastAPI app
-COPY src/tfidf_svc/app.py ./app.py
+# Copy the full TFIDF service (including artifacts)
+COPY src/tfidf_svc/ .
 
-# Copy MLflow data
-COPY mlruns/ ./mlruns
+# Expose port
+EXPOSE 8000
 
-# Expose ports
-EXPOSE 8000 5000
-
-# Default command (can be overridden in docker-compose)
+# Default command
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
