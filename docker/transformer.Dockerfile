@@ -18,8 +18,9 @@ RUN apt-get update && apt-get install -y \
     git \
     && apt-get clean
 
-# Installer Python packages essentiels
-RUN pip install --no-cache-dir transformers torch fastapi uvicorn --timeout 200
+# Copy requirements and install all dependencies
+COPY src/transformer/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt --timeout 200
 
 # Créer un dossier pour le cache Hugging Face
 RUN mkdir -p /app/cache
