@@ -2,3 +2,4 @@ fastapi
 uvicorn
 requests
 pydantic
+prometheus-client>=0.15.0

@@ -1,0 +1,45 @@
+name: MLflow Experiments & Registry
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: ["main"]
+
+jobs:
+  run-experiment-and-register:
+    name: Run lightweight experiment and register model
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies (mlflow + TFIDF deps)
+        run: |
+          python -m pip install --upgrade pip
+          pip install mlflow scikit-learn pandas joblib -q
+          pip install -r src/tfidf_svc/requirements.txt -q || true
+
+      - name: Run training (logs a run to mlruns/ mlflow sqlite DB)
+        run: |
+          python src/tfidf_svc/train.py
+
+      - name: Start MLflow server (background)
+        run: |
+          nohup mlflow server --backend-store-uri sqlite:///mlruns/mlflow.db --default-artifact-root file://$GITHUB_WORKSPACE/mlruns --host 127.0.0.1 --port 5000 > mlflow_server.log 2>&1 &
+          sleep 5
+
+      - name: Register latest experiment run in registry
+        run: |
+          python scripts/register_latest.py --model-name tfidf-svc-call-center --stage Staging
+
+      - name: Upload mlruns as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlruns
+          path: mlruns

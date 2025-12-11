@@ -1,0 +1,4 @@
+# Add prometheus-client to your Python requirements to expose metrics
+# This file shows what to add to your service requirements.txt files
+
+prometheus-client>=0.15.0

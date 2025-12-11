@@ -1,0 +1,73 @@
+{
+  "dashboard": {
+    "title": "CallCenterAI MLOps Monitoring",
+    "description": "Real-time monitoring of ticket classification services",
+    "tags": ["mlops", "ticket-classifier"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "API Uptime",
+        "targets": [
+          {
+            "expr": "up{job=~\"tfidf_svc|transformer_api|router_service\"}",
+            "legendFormat": "{{ job }}"
+          }
+        ],
+        "type": "stat"
+      },
+      {
+        "title": "Request Rate (5m)",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{ job }}"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Error Rate (5m)",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m])",
+            "legendFormat": "{{ job }}"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Response Time P95 (5m)",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{ job }}"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Model Inference Time P99 (5m)",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, rate(model_inference_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{ job }}"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Active Predictions",
+        "targets": [
+          {
+            "expr": "predictions_active{job=~\"tfidf_svc|transformer_api\"}",
+            "legendFormat": "{{ job }}"
+          }
+        ],
+        "type": "stat"
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 27,
+    "version": 0
+  }
+}

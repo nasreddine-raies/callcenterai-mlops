@@ -1,0 +1,28 @@
+# Minimal config.local for local development — fill values and keep out of VCS
+
+# MLflow
+MLFLOW_TRACKING_URI=http://localhost:5000
+
+# Hugging Face
+HF_TOKEN=your_huggingface_token_here
+TRANSFORMER_MODEL_ID=nsayer/mon_modele
+
+# DVC remote (optional)
+DVC_REMOTE_URL=
+DVC_REMOTE_USER=
+DVC_REMOTE_PASS=
+
+# If using S3 for DVC/artifacts
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=
+
+# Local artifact/data paths (can be left as defaults)
+TFIDF_VECTORIZER_PATH=./src/tfidf_svc/artifacts/tfidf_vectorizer.joblib
+TFIDF_MODEL_PATH=./src/tfidf_svc/artifacts/tfidf_svc_model.joblib
+LOCAL_DATA_PATH=./data/data_final.csv
+
+# App settings
+TFIDF_PORT=8000
+TRANSFORMER_PORT=8001
+LOG_LEVEL=INFO

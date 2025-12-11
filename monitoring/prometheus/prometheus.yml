@@ -1,0 +1,40 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'CallCenterAI-MLOps'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # TFIDF SVC API metrics
+  - job_name: 'tfidf_svc'
+    static_configs:
+      - targets: ['tfidf_service:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+
+  # Transformer API metrics
+  - job_name: 'transformer_api'
+    static_configs:
+      - targets: ['transformer_service:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+
+  # Router Service metrics
+  - job_name: 'router_service'
+    static_configs:
+      - targets: ['router_service:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 5s

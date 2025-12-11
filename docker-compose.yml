@@ -13,6 +13,8 @@ services:
       - ./mlruns:/app/mlruns
     environment:
       - MLFLOW_TRACKING_URI=sqlite:///mlruns/mlflow.db
+    networks:
+      - monitoring
 
   mlflow_ui:
     build: 
@@ -38,6 +40,8 @@ services:
     ports:
       - "8002:8000"  # Host:Container - map host 8001 to container 8000
     # Remove the command override, let Dockerfile CMD run
+    networks:
+      - monitoring
 
   router_service:
     build:
@@ -49,6 +53,8 @@ services:
     depends_on:
       - tfidf_service
       - transformer_service
+    networks:
+      - monitoring
   frontend_ui:
     build:
       context: .
@@ -63,3 +69,52 @@ services:
       - router_service
     volumes:
       - ./frontend/app.py:/app/app.py
+    networks:
+      - monitoring
+
+  # =====================================
+  # Monitoring Stack
+  # =====================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
